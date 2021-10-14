@@ -31,7 +31,7 @@ python .\shadow_mask_rgb.py input=\InputImage ext=.jp2 bits=8 jump=2 sub=10 hste
 - `ext`=  extension des images dans le répertoire d'entrée, défaut=.*
 - `bits`= profondeur de couleur,  8 ou 16, défaut=8
 - `jump`= intervalle pour la création de list d'image pour le seuillage global. Le seuillage global n'a pas besoin de lire toutes les images, donner un intervalle>1 permet de gagner du temps. défaut=1
-- `sub`= un autre intervalle pour le seuillage global. Le seuillage global n'a pas besoin de lire tous les pixels d'une image, donner un intervalle> permet de gagner du temps. défaut=10 
+- `sub`= un autre intervalle pour le seuillage global. Le seuillage global n'a pas besoin de lire tous les pixels d'une image, donner un intervalle>1 permet de gagner du temps. défaut=10 
 - `hsteq`= option pour le seuillage global. Certaines images en 16bits brute ont une plage de dynamique restreinte, `hsteq=True` applique une égalisation histogramme sur  la luminosité `I` afin d'améliorer le résultat de seuillage d'histogramme. défaut=False
 - `output`= nom du répertoire de sortie. A défaut de répertoire de sortie, le script ne fait que de seuillage global.
 
@@ -46,7 +46,7 @@ python .\shadow_mask_rgb_nir.py input=\InputImage threshold_input=\ShresholdInpu
 - `ext_rgb` et `ext_nir` =  extension des images RVB et PIR, **<font color=#FF0000>Attention</font>** les noms d'image RVB et PIR doivent être identiques sauf leur extension, par exemple `nom-RVB.jp2`  dans le répertoire `\InputImage\RVB\` et `nom-PIR.jp2`  dans le répertoire `\InputImage\PIR\`. Cela permet au programme de repérer le couple d'images RVB/PIR.  défaut=.*
 - `bits`= profondeur de couleur,  8 ou 16, défaut=8
 - `jump`= intervalle pour la création de list d'image pour le seuillage global. Le seuillage global n'a pas besoin de lire toutes les images, donner un intervalle>1 permet de gagner du temps. Si `threshold_input` est donné, `jump` est forcé à 1. défaut=1
-- `sub`= un autre intervalle pour le seuillage global. Le seuillage global n'a pas besoin de lire tous les pixels d'une image, donner un intervalle> permet de gagner du temps. default=10 
+- `sub`= un autre intervalle pour le seuillage global. Le seuillage global n'a pas besoin de lire tous les pixels d'une image, donner un intervalle>1 permet de gagner du temps. default=10 
 - `hsteq`= option pour le seuillage global. Certaines images en 16bits brute ont une plage de dynamique restreinte, `hsteq=True` applique une égalisation histogramme sur  la luminosité `I` afin d'améliorer le résultat de seuillage d'histogramme. défaut=False
 - `method`= option pour sélectionner la méthode de seuillage global. Il dispose les options `nagao` et `tsai`, défaut=nagao
 - `output`= nom du répertoire de sortie. A défaut de répertoire de sortie, le script ne fait que de seuillage global.
