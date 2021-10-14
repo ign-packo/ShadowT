@@ -5,7 +5,7 @@ Ce script utilise différentes méthodes de seuillage d'histogramme dans le but 
 
 ## Algorithme
 
-`shadow_mask` combine les différentes méthodes de détection d'ombre pour construire un processus robuste. L'idée principale est d'appliquer un seuillage global sur un groupe d'images qui présente les différentes scènes de payage d'un chantier. Le seuil déterminé peut être appliqué sur l'ensemble d'images aérienne du même chantier.
+`shadow_mask.py` combine les différentes méthodes de détection d'ombre pour construire un processus robuste. L'idée principale est d'appliquer un seuillage global sur un groupe d'images qui présente les différentes scènes de payage d'un chantier. Le seuil déterminé peut être appliqué sur l'ensemble d'images aérienne du même chantier.
 
 Inspiré par l'article [Adeline13], dans le cas d'images RVB, la méthode de couleur invariante [Tsai06] est appliquée. Il s'agit d'abord de convertir l'espace couleur RVB en HSI (Hue Saturation Intensity) puis d'appliquer le seuillage d'histogramme [Otsu79] sur le ratio entre H et I. Dans le cas d'images RVB-PIR, la méthode [Tsai06] est conservée, avec une autre option: la méthode [Nagao79]. Il s'agit d'un seuillage d'histogramme de "première vallée" sur la luminosité pondérée d'image. En fin, les seuillages d'histogramme sur les cartes de  NDWI (Normalized Difference Water Index) et NDVI (Normalized difference Vegetaion Index) permettent de détecter des surfaces d'eau et de végétation qui risquent d'être confondues avec l'ombre.
 
