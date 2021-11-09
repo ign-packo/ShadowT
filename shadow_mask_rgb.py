@@ -30,7 +30,9 @@ Module name:
                afin d'améliorer le résultat de seuillage d'histogramme. 
                défaut=False
     - `output`= nom du répertoire de sortie
-        
+
+Modification:
+    2020-11-09: save the mask image in tif format        
 
 """
 
@@ -74,7 +76,7 @@ def shadow_mask(src_path,ext,bits,hsteq,th,dst_path):
         mask = sm.shadow_mask_bgr(bgr, th, bits,hsteq=hsteq)
         #save result
         name = flist[j][len(src_path)+1:-len(ext)-1]        
-        maskfile = os.path.join(dst_path,'mask_'+name+'.jpg')
+        maskfile = os.path.join(dst_path,'mask_'+name+'.tif')
         cv2.imwrite(maskfile,((1-mask)*255).astype(np.uint8))
         print(name+' done')                
         #save bgr_8bits with mask
@@ -91,8 +93,8 @@ def shadow_mask(src_path,ext,bits,hsteq,th,dst_path):
             v[mask==1] = val[i]
             bgr8[:,:,i] = v        
         imfile = os.path.join(dst_path,'masked_'+name+'.jpg')
-        cv2.imwrite(imfile,bgr8)
-    print('--------------------------')
+        cv2.imwrite(imfile,bgr8)       
+    print('---------------------------')
     print('|rgb image shadow mask end|')
     print('---------------------------')    
 

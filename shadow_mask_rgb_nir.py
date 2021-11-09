@@ -46,6 +46,9 @@ Module name:
     - `method`= option pour sélectionner la méthode de seuillage global. 
                 Il dispose les options `nagao` et `tsai`, défaut=nagao
     - `output`= nom du répertoire de sortie
+
+Modification:
+    2020-11-09: save the mask image in tif format 
     
 """
 
@@ -121,7 +124,7 @@ def shadow_mask(src_path,ext_rgb,ext_nir,bits,hsteq,method,th,dst_path):
         mask = sm.shadow_mask_bgrn(bgrn,th,bits,method,hsteq=hsteq)        
         # #save result
         name = flist_rgb[j][len(src_path_rgb)+1:-len(ext_rgb)]        
-        maskfile = os.path.join(dst_path,'mask_'+name+'.jpg')
+        maskfile = os.path.join(dst_path,'mask_'+name+'.tif')
         cv2.imwrite(maskfile,((1-mask)*255).astype(np.uint8))
         print(name+' done')        
         #save bgr_8bits with mask
