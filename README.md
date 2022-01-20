@@ -57,6 +57,19 @@ Dans le répertoire de sortie, vous trouverez:
 - masked_nom.jpg:  Image de départ en 8 bits (quelque soit sa profondeur de couleur d'origine) et les pixels d'ombre sont masqués en rouge. Le nom d'image `nom` de départ est conservé.
 - mask_nom.jpg:  Masque d'ombre binaire obtenu, les pixels d'ombre ont la valeur 0 et les restes ont la valeur 255.
 
+## Précision du masque d'ombre
+Pour comparer la précision des différents masques d'ombre, le script ``DifferenceMask.py`` compare deux masques issus d'une même image.
+Ce script donne des statistiques sur la précision d'un masque d'ombre par rapport à un masque dit de référence, en évaluant par rapport à la référence, quels pixels sont correctement détéctés à l'ombre ou non. 
+
+### Exemple d'utilisation du script :
+```  
+python .\DifferenceMask.py .\MasqueDeReference .\MasqueATester 
+```
+Il y'a également deux masques de référence où l'ombre a été sélectionnée à la main dans les dossiers 35Reference et 75Reference
+Ces dossiers contiennent l'image de base, le masque de référence (réalisé manuellement via Gimp) et un masque à tester, créé via l'algorithme de seuillage.
+
+Cependant, même à l'oeil nu il est difficile dans certains cas de déterminer si certains pixels sont à l'ombre ou non, c'est pourquoi ces références ont un intêret pour comparer mais ne sont pas une vérité absolue.
+
 ## Discussion
 
 Le seuillage global avec une liste d'images construite par jump n'est peut être pas la méthode la plus efficace, surtout s'il existe de scènes seulement présentées dans 1 ou 2 images. Dans le cas de seuillage global RVB+PIR, il faut penser à construire une liste d'images sélectionnées par l'utilisateur pour le seuillage global.
