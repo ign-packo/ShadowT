@@ -37,6 +37,16 @@ Module name:
                      l'etirement lineaire
         ndwi: indice d'eau
         ndvi: indice de végétation
+    
+    modification 2022-02-07: 
+        correction of ndvi() and ndwi()
+        detection and correction of zero value pixels, NaN problem
+    modification 2022-02-08:
+        correction of global_thresholding_nagao()
+        change step value for histogram of 16bits Nagao image.
+        Some 16bits image show a discontinuity in Nagao histogram, perhapes due
+        to pre-precessing like histogram equalization. Increasing the step value
+        improves the continuity of Nagao histogram.
 
 """
 
@@ -258,10 +268,14 @@ def ndvi(bgrn):
         bgrn - bgrn image array
     Returns:
         ndvi
+    modification 2022-02-07
+        detection and correction of zero value pixel
     '''
     r = bgrn[:,:,2].astype(float)
     n = bgrn[:,:,3].astype(float)
-    return (n-r)/(n+r)
+    t = n+r
+    t[t<1] = 1
+    return (n-r)/t
 
 def ndwi(bgrn):
     '''
@@ -270,10 +284,14 @@ def ndwi(bgrn):
         bgrn - bgrn image array
     Returns:
         ndwi
+    modification 2022-02-07
+        detection and correction of zero value pixel
     '''
     g = bgrn[:,:,1].astype(float)
     n = bgrn[:,:,3].astype(float)
-    return (g-n)/(g+n)
+    t = g+n
+    t[t<1] = 1
+    return (g-n)/t
 
 
 def hist_valleys(hist):
@@ -301,11 +319,15 @@ def global_thresholding_nagao(bgrn_list,bits):
         bgrn_list: list of bgrn images, band order is [blue,green,red,nir]
     returns:
         th_nagao: shadow thresholdng from bgrn image
+    modification 2022-02-08
+        change step value for 16bits image.
     ''' 
     if bits==8:
         PMAX = _PMAX8
+        step = 1
     elif bits==16:
         PMAX = _PMAX16
+        step = PMAX/1000
     else:
         print('color depth must be 8 or 16!')
     
@@ -317,7 +339,7 @@ def global_thresholding_nagao(bgrn_list,bits):
     NG1 = [x for sub in NG for x in sub]
     NG = np.array(NG1)      
     #first valley thresoding for NG   
-    x,hist = hist_uniform(NG,[0,PMAX],step=1)
+    x,hist = hist_uniform(NG,[0,PMAX],step=step)
     #smooth hist curve
     hist = gaussian_filter1d(hist, 10, mode='nearest')
     #firt valley    
