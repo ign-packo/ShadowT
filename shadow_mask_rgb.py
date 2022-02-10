@@ -40,12 +40,14 @@ import os
 import glob
 import numpy as np
 import cv2
+import time
 import shadow_mask as sm
        
 
 def global_thresholding(src_path,ext,bits,jump,sub,hsteq): 
     print('-------------------------')
     print('global thresholding start.')
+    start_thresholding = time.time()
     pattern = os.path.join(src_path,'*'+ext)
     flist = np.array([f.replace("\\","/") for f in glob.glob(pattern)])    
     flist = flist[0::jump]
@@ -61,6 +63,8 @@ def global_thresholding(src_path,ext,bits,jump,sub,hsteq):
     
     th = sm.global_thresholding_bgr(bgr_list,bits,hsteq=hsteq)
     print('global threshoding end. th =',th)
+    end_thresholding = time.time()
+    print('temps pour le thresholding :', end_thresholding - start_thresholding)
     print('----------------------------')
     return th
 
@@ -68,6 +72,7 @@ def shadow_mask(src_path,ext,bits,hsteq,th,dst_path):
     print('-----------------------------')
     print('|rgb image shadow mask start|')
     print('-----------------------------')
+    start_mask = time.time()
     pattern = os.path.join(src_path,'*'+ext)
     flist = np.array([f.replace("\\","/") for f in glob.glob(pattern)])
     for j in range(len(flist)):
@@ -87,13 +92,15 @@ def shadow_mask(src_path,ext,bits,hsteq,th,dst_path):
         else:
             print('bits must = 8 or 16!')
             
-        val = [0,0,255]
-        for i in range(3):
-            v = bgr8[:,:,i]
-            v[mask==1] = val[i]
-            bgr8[:,:,i] = v        
-        imfile = os.path.join(dst_path,'masked_'+name+'.jpg')
-        cv2.imwrite(imfile,bgr8)       
+        #val = [0,0,255]
+        #for i in range(3):
+            #v = bgr8[:,:,i]
+            #v[mask==1] = val[i]
+            #bgr8[:,:,i] = v        
+        #imfile = os.path.join(dst_path,'masked_'+name+'.jpg')
+        #cv2.imwrite(imfile,bgr8)
+    end_mask = time.time()
+    print('temps pour le mask :', end_mask - start_mask)       
     print('---------------------------')
     print('|rgb image shadow mask end|')
     print('---------------------------')    
