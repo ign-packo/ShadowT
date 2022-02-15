@@ -63,8 +63,8 @@ def global_thresholding(src_path,pref_rgb,pref_nir,ext_rgb,ext_nir,bits,jump,sub
     print('-------------------------')
     print('global thresholding start.')
     start_thresholding = time.time()
-    src_path_rgb = src_path+'/'+'RVB'
-    src_path_nir = src_path+'/'+'PIR'
+    src_path_rgb = src_path+'/'+'RGB'
+    src_path_nir = src_path+'/'+'IR'
     pattern = os.path.join(src_path_rgb,pref_rgb+'*'+ext_rgb)
     flist_rgb = np.array([f.replace("\\","/") for f in glob.glob(pattern)]) 
     flist_rgb = flist_rgb[0::jump]
@@ -106,8 +106,8 @@ def shadow_mask(src_path,pref_rgb,pref_nir,ext_rgb,ext_nir,bits,hsteq,method,th,
     print('|rgb-nir image shadow mask start|')
     print('---------------------------------')
     start_mask = time.time()
-    src_path_rgb = src_path+'/'+'RVB'
-    src_path_nir = src_path+'/'+'PIR'
+    src_path_rgb = src_path+'/'+'RGB'
+    src_path_nir = src_path+'/'+'IR'
     
     pattern = os.path.join(src_path_rgb,pref_rgb+'*'+ext_rgb)
     flist_rgb = np.array([f.replace("\\","/") for f in glob.glob(pattern)]) 

@@ -80,7 +80,7 @@ def shadow_mask(src_path,ext,bits,hsteq,th,dst_path):
         #call shadow_mask_bgr
         mask = sm.shadow_mask_bgr(bgr, th, bits,hsteq=hsteq)
         #save result
-        name = flist[j][len(src_path)+1:-len(ext)-1]        
+        name = flist[j][len(src_path)+1:-len(ext)]        
         maskfile = os.path.join(dst_path,'mask_'+name+'.tif')
         cv2.imwrite(maskfile,((1-mask)*255).astype(np.uint8))
         print(name+' done')                
@@ -141,16 +141,22 @@ def main(**kwargs):
         dst_path = kwargs.get('output')
     else:
         dst_path = ''
+    if 'threshold_input' in kwargs:
+        th_path = kwargs['threshold_input']
+        jump = 1
+    else:
+        th_path = src_path
     
     print('input image path = ',src_path)
+    print('threshold image path = ',th_path)
     print('file extension = '+ext)
     print('color deep = ',bits)
     print('jump = ',jump)
     print('sub = ',sub)
     print('hsteq = ',hsteq)
     print('output path=',dst_path)
-    if src_path !='':
-        th = global_thresholding(src_path,ext,bits,jump,sub,hsteq)
+    if th_path !='':
+        th = global_thresholding(th_path,ext,bits,jump,sub,hsteq)
         if dst_path !='':
             shadow_mask(src_path,ext,bits,hsteq,th,dst_path)
         
