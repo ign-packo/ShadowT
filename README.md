@@ -25,10 +25,12 @@ Pour utiliser le script, désigner un répertoire d'entrée contenant des images
 `shadow_mask_rgb.py`: le script pour traiter les images RVB
 
 ```  
-python .\shadow_mask_rgb.py input=\InputImage ext=.jp2 bits=8 jump=2 sub=10 hsteq=False output=\OutputResults 
+python .\shadow_mask_rgb.py input=\InputImage threshold_input=\ThresholdInputImage pref_rgb=PrefixKey ext=.jp2 bits=8 jump=2 sub=10 hsteq=False output=\OutputResults 
 ```
 - `input`= nom du répertoire d'entrée.
-- `ext`=  extension des images dans le répertoire d'entrée, défaut=.*
+- `threshold_input`= nom du répertoire d'entrée pour le seuillage global. A défaut, `threshold_input=input`
+- `pref_rgb`= prefixe du jeu de données à utiliser 
+- `ext`= extension des images dans le répertoire d'entrée, défaut=.*
 - `bits`= profondeur de couleur,  8 ou 16, défaut=8
 - `jump`= intervalle pour la création de list d'image pour le seuillage global. Le seuillage global n'a pas besoin de lire toutes les images, donner un intervalle>1 permet de gagner du temps. défaut=1
 - `sub`= un autre intervalle pour le seuillage global. Le seuillage global n'a pas besoin de lire tous les pixels d'une image, donner un intervalle>1 permet de gagner du temps. défaut=10 
@@ -39,10 +41,12 @@ python .\shadow_mask_rgb.py input=\InputImage ext=.jp2 bits=8 jump=2 sub=10 hste
 
 `shadow_mask_rgb_nir.py`: le script pour traiter les images RVB + PIR
 ```  
-python .\shadow_mask_rgb_nir.py input=\InputImage threshold_input=\ShresholdInputImage ext_rgb=-RVB.jp2 ext_nir=-PIR.jp2 bits=8 jump=2 sub=10 hsteq=False method=nagao output=\OutputResults 
+python .\shadow_mask_rgb_nir.py input=\InputImage threshold_input=\ThresholdInputImage pref_rgb=PrefixKeyRgb pref_rgb=PrefixKeyPir ext_rgb=-RVB.jp2 ext_nir=-PIR.jp2 bits=8 jump=2 sub=10 hsteq=False method=nagao output=\OutputResults 
 ```
 - `input`= nom du répertoire d'entrée. Les images RVB sont stockés dans le sous-répertoire `\RVB` et les images PIR sont stockés dans le sous-répertoire `\PIR`
-- `threshold_input`=nom du répertoire d'entrée pour le seuillage global. Les images RVB sont stockés dans le sous-répertoire `\RVB` et les images PIR sont stockés dans le sous-répertoire `\PIR` . A défaut, `threshold_input=input` 
+- `threshold_input`=nom du répertoire d'entrée pour le seuillage global. Les images RVB sont stockés dans le sous-répertoire `\RVB` et les images PIR sont stockés dans le sous-répertoire `\PIR` . A défaut, `threshold_input=input`
+- `pref_rgb`= prefixe du jeu de données RGB à utiliser.
+- `pref_nir`= prefixe du jeu de données PIR à utiliser. 
 - `ext_rgb` et `ext_nir` =  extension des images RVB et PIR, **<font color=#FF0000>Attention</font>** les noms d'image RVB et PIR doivent être identiques sauf leur extension, par exemple `nom-RVB.jp2`  dans le répertoire `\InputImage\RVB\` et `nom-PIR.jp2`  dans le répertoire `\InputImage\PIR\`. Cela permet au programme de repérer le couple d'images RVB/PIR.  défaut=.*
 - `bits`= profondeur de couleur,  8 ou 16, défaut=8
 - `jump`= intervalle pour la création de list d'image pour le seuillage global. Le seuillage global n'a pas besoin de lire toutes les images, donner un intervalle>1 permet de gagner du temps. Si `threshold_input` est donné, `jump` est forcé à 1. défaut=1

@@ -58,6 +58,7 @@ import numpy as np
 import cv2
 import time
 import shadow_mask as sm
+from osgeo import gdal
 
 def global_thresholding(src_path,pref_rgb,pref_nir,ext_rgb,ext_nir,bits,jump,sub,hsteq,method): 
     print('-------------------------')
@@ -131,6 +132,13 @@ def shadow_mask(src_path,pref_rgb,pref_nir,ext_rgb,ext_nir,bits,hsteq,method,th,
         name = flist_rgb[j][len(src_path_rgb)+1:-len(ext_rgb)]        
         maskfile = os.path.join(dst_path,'mask_'+name+'.tif')
         cv2.imwrite(maskfile,((1-mask)*255).astype(np.uint8))
+        #add georef from original image to mask 
+        georef_src = gdal.Open(flist_rgb[j])
+        georef_dst = gdal.OpenShared(maskfile,gdal.GA_Update)
+        geo_tsf = georef_src.GetGeoTransform()
+        geo_proj = georef_src.GetProjection()
+        georef_dst.SetGeoTransform(geo_tsf)
+        georef_dst.SetProjection(geo_proj)
         print(name+' done')        
         #save bgr_8bits with mask
         if bits==8:
@@ -139,7 +147,8 @@ def shadow_mask(src_path,pref_rgb,pref_nir,ext_rgb,ext_nir,bits,hsteq,method,th,
             bgr8 = sm.linear_stretch_16bits_to_8bits(bgr,vmin=0,vmax=0.98)
         else:
             print('bits must = 8 or 16!')
-            
+
+        #Superpose mask on the original image
         #val = [0,0,255]
         #for i in range(3):
             #v = bgr8[:,:,i]
