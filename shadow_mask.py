@@ -47,7 +47,16 @@ Module name:
         Some 16bits image show a discontinuity in Nagao histogram, perhapes due
         to pre-precessing like histogram equalization. Increasing the step value
         improves the continuity of Nagao histogram.
-
+    modification 2022-02-10:
+        correction of hist_valleys()
+        Ajouter le lissage de la courbe d'histogramme avec une vérification 
+        pour ajuster la fenêtre de lissage.La taille de fenêtre initiale est 10, 
+        peut être réduite selon le nombre de vallé trouvé.
+        Par conséquent, le lissage avec la taille de fenêtre 10 dans :
+        global_thresholding_nagao(), water_detection(), vegetation_detection()
+        est suppérimé.
+    modification 2022-02-10:
+        fix the bug in vegetation_detection()
 """
 
 import numpy as np
@@ -234,8 +243,7 @@ def global_thresholding_bgr(bgr_list,bits,hsteq=False):
     for bgr in bgr_list: 
         #tsai h-i ratio
         r = hsi_ratio(bgr,bits,hsteq=hsteq)
-        R.append(r.flatten())
-         
+        R.append(r.flatten())         
     R1 = [x for sub in R for x in sub]
     R = np.array(R1)   
     #otsu thresholding
@@ -254,12 +262,10 @@ def shadow_mask_bgr(bgr,th_hi_ratio,bits,hsteq=False):
         hsteq: option, use the same option as global_thresholding
     return:
         mask: shadow mask
-    '''
-        
+    '''       
     R = hsi_ratio(bgr,bits,hsteq=hsteq)
     mask = R>th_hi_ratio
     return mask
-
 
 def ndvi(bgrn):
     '''
@@ -301,14 +307,39 @@ def hist_valleys(hist):
     args: 
         hist: histogram curve 1d array
     return:
-        [ith_first,ith_last]: the bins index of the valleys  
-    '''
-    #firt valley    
-    peaks, _ = find_peaks(hist) 
-    hist_inv = np.max(hist)-hist
-    valleys,_ = find_peaks(hist_inv)
+        [ith_first,ith_last]: the bins index of the valleys 
     
-    valleys = valleys[valleys>peaks[0]]
+    modification 2022-02-10:
+        add smooth operation, 
+        windows size sig=10 for 16bits nagao,ndvi and ndwi
+        sig=4 for 8bits nagao
+        check the valleys numbers, if <1, reduce the smooth windows size.
+    '''
+    #smooth hist curve
+    if len(hist)>=1000:
+        sig = 10
+    else:
+        sig = 4
+    hist1 = gaussian_filter1d(hist, sig, mode='nearest')   
+    #find valleys, iteration 1
+    peaks, _ = find_peaks(hist1) 
+    hist_inv = np.max(hist1)-hist1   
+    valleys,_ = find_peaks(hist_inv)  
+    while len(peaks)<2 and sig>1:
+        sig -=1
+        hist1 = gaussian_filter1d(hist, sig, mode='nearest')
+        peaks, _ = find_peaks(hist1)
+        hist_inv = np.max(hist1)-hist1   
+        valleys,_ = find_peaks(hist_inv)  
+    #last check
+    if len(peaks)<2:
+        print("hist valleys failed")
+        valleys = np.array([int(len(hist1)/2)])
+    else:
+        valleys = valleys[valleys>peaks[0]]
+        if len(valleys)<1:
+            print("hist valleys failed")
+            valleys = np.array([int(len(hist1)/2)])
     return valleys    
     
 def global_thresholding_nagao(bgrn_list,bits):
@@ -334,14 +365,11 @@ def global_thresholding_nagao(bgrn_list,bits):
     NG = []
     for bgrn in bgrn_list:
         ng_map = nagao(bgrn)
-        NG.append(ng_map.flatten())
-            
+        NG.append(ng_map.flatten())            
     NG1 = [x for sub in NG for x in sub]
     NG = np.array(NG1)      
     #first valley thresoding for NG   
     x,hist = hist_uniform(NG,[0,PMAX],step=step)
-    #smooth hist curve
-    hist = gaussian_filter1d(hist, 10, mode='nearest')
     #firt valley    
     valleys = hist_valleys(hist)
     ith_first = valleys[0]
@@ -360,8 +388,6 @@ def water_detection(bgrn_list):
     vmax = np.max(NDWI)   
     step = (vmax-vmin)/1000  
     x,hist = hist_uniform(NDWI,[vmin,vmax],step=step) 
-    #smooth hist curve      
-    hist = gaussian_filter1d(hist, 6, mode='nearest')
     #last valley  
     valleys = hist_valleys(hist)
     ith_last = valleys[-1]
@@ -373,16 +399,14 @@ def vegetation_detection(bgrn_list):
     NDVI = []
     for bgrn in bgrn_list:
         ndvi_map = ndvi(bgrn)
-        NDVI.append(ndvi_map)            
+        NDVI.append(ndvi_map.flatten())            
     NDVI1 = [x for sub in NDVI for x in sub]
     NDVI = np.array(NDVI1)
     #histogram of NDVI
     vmin = np.min(NDVI)
     vmax = np.max(NDVI)   
     step = (vmax-vmin)/1000  
-    x,hist = hist_uniform(NDVI,[vmin,vmax],step=step)
-    #smooth hist curve
-    hist = gaussian_filter1d(hist, 6, mode='nearest')   
+    x,hist = hist_uniform(NDVI,[vmin,vmax],step=step)   
     #last valley  
     valleys = hist_valleys(hist)
     ith_last = valleys[-1]
