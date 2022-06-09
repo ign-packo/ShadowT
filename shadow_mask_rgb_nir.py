@@ -56,21 +56,24 @@ import os
 import glob
 import numpy as np
 import cv2
+import time
 import shadow_mask as sm
+from osgeo import gdal
 
-def global_thresholding(src_path,ext_rgb,ext_nir,bits,jump,sub,hsteq,method): 
+def global_thresholding(src_path,pref_rgb,pref_nir,ext_rgb,ext_nir,bits,jump,sub,hsteq,method): 
     print('-------------------------')
     print('global thresholding start.')
-    src_path_rgb = src_path+'/'+'RVB'
-    src_path_nir = src_path+'/'+'PIR'
-    pattern = os.path.join(src_path_rgb,'*'+ext_rgb)
+    start_thresholding = time.time()
+    src_path_rgb = src_path+'/'+'RGB'
+    src_path_nir = src_path+'/'+'IR'
+    pattern = os.path.join(src_path_rgb,pref_rgb+'*'+ext_rgb)
     flist_rgb = np.array([f.replace("\\","/") for f in glob.glob(pattern)]) 
     flist_rgb = flist_rgb[0::jump]
     print(len(flist_rgb),'images used:')
     flist_nir = []
     for file_rgb in flist_rgb:
-        name = file_rgb[len(src_path_rgb)+1:-len(ext_rgb)]
-        file_nir = os.path.join(src_path_nir,name+ext_nir)
+        name = file_rgb[len(src_path_rgb+pref_nir)-1:-len(ext_rgb)]
+        file_nir = os.path.join(src_path_nir,pref_nir+name+ext_nir)
         file_nir =file_nir.replace("\\","/") #unix-windows problem
         flist_nir.append(file_nir)
         print('rgb: '+file_rgb[len(src_path_rgb)+1:])
@@ -90,6 +93,8 @@ def global_thresholding(src_path,ext_rgb,ext_nir,bits,jump,sub,hsteq,method):
         bgrn_list.append(bgrn)
     
     th = sm.global_thresholding_bgrn(bgrn_list,bits,method,hsteq=hsteq)
+    end_thresholding = time.time()
+    print('temps pour le thresholding :', end_thresholding - start_thresholding)
     print('global threshoding end.')
     print('threshold of [shadow, water, vegetation]')
     print(th)
@@ -97,19 +102,20 @@ def global_thresholding(src_path,ext_rgb,ext_nir,bits,jump,sub,hsteq,method):
     return th
 
 
-def shadow_mask(src_path,ext_rgb,ext_nir,bits,hsteq,method,th,dst_path):
+def shadow_mask(src_path,pref_rgb,pref_nir,ext_rgb,ext_nir,bits,hsteq,method,th,dst_path):
     print('---------------------------------')
     print('|rgb-nir image shadow mask start|')
     print('---------------------------------')
-    src_path_rgb = src_path+'/'+'RVB'
-    src_path_nir = src_path+'/'+'PIR'
+    start_mask = time.time()
+    src_path_rgb = src_path+'/'+'RGB'
+    src_path_nir = src_path+'/'+'IR'
     
-    pattern = os.path.join(src_path_rgb,'*'+ext_rgb)
+    pattern = os.path.join(src_path_rgb,pref_rgb+'*'+ext_rgb)
     flist_rgb = np.array([f.replace("\\","/") for f in glob.glob(pattern)]) 
     flist_nir = []
     for file_rgb in flist_rgb:
-        name = file_rgb[len(src_path_rgb)+1:-len(ext_rgb)]
-        file_nir = os.path.join(src_path_nir,name+ext_nir)
+        name = file_rgb[len(src_path_rgb+pref_nir)-1:-len(ext_rgb)]
+        file_nir = os.path.join(src_path_nir,pref_nir+name+ext_nir)
         file_nir =file_nir.replace("\\","/") #unix-windows problem
         flist_nir.append(file_nir)
         
@@ -126,6 +132,13 @@ def shadow_mask(src_path,ext_rgb,ext_nir,bits,hsteq,method,th,dst_path):
         name = flist_rgb[j][len(src_path_rgb)+1:-len(ext_rgb)]        
         maskfile = os.path.join(dst_path,'mask_'+name+'.tif')
         cv2.imwrite(maskfile,((1-mask)*255).astype(np.uint8))
+        #add georef from original image to mask 
+        georef_src = gdal.Open(flist_rgb[j])
+        georef_dst = gdal.OpenShared(maskfile,gdal.GA_Update)
+        geo_tsf = georef_src.GetGeoTransform()
+        geo_proj = georef_src.GetProjection()
+        georef_dst.SetGeoTransform(geo_tsf)
+        georef_dst.SetProjection(geo_proj)
         print(name+' done')        
         #save bgr_8bits with mask
         if bits==8:
@@ -134,14 +147,17 @@ def shadow_mask(src_path,ext_rgb,ext_nir,bits,hsteq,method,th,dst_path):
             bgr8 = sm.linear_stretch_16bits_to_8bits(bgr,vmin=0,vmax=0.98)
         else:
             print('bits must = 8 or 16!')
-            
-        val = [0,0,255]
-        for i in range(3):
-            v = bgr8[:,:,i]
-            v[mask==1] = val[i]
-            bgr8[:,:,i] = v        
-        imfile = os.path.join(dst_path,'masked_'+name+'.jpg')
-        cv2.imwrite(imfile,bgr8)
+
+        #Superpose mask on the original image
+        #val = [0,0,255]
+        #for i in range(3):
+            #v = bgr8[:,:,i]
+            #v[mask==1] = val[i]
+            #bgr8[:,:,i] = v        
+        #imfile = os.path.join(dst_path,'masked_'+name+'.jpg')
+        #cv2.imwrite(imfile,bgr8)
+    end_mask = time.time()
+    print('temps pour le mask :', end_mask - start_mask) 
     print('---------------------------')
     print('|rgb image shadow mask end|')
     print('---------------------------')
@@ -160,6 +176,14 @@ def main(**kwargs):
         src_path = kwargs['input']
     else:
         src_path = ''
+    if 'pref_nir' in kwargs:
+        pref_nir = kwargs.get('pref_nir')
+    else:
+        pref_nir = ''
+    if 'pref_rgb' in kwargs:
+        pref_rgb = kwargs.get('pref_rgb')
+    else:
+        pref_rgb = ''
     if 'ext_rgb' in kwargs:
         ext_rgb = kwargs.get('ext_rgb')
     else:
@@ -200,6 +224,8 @@ def main(**kwargs):
     
     print('input image path = ',src_path)
     print('threshold image path = ',th_path)
+    print('nir file prefix key = '+pref_nir)
+    print('rgb file prefix key = '+pref_rgb)
     print('rgb file key and extension = '+ext_rgb)
     print('nir file key and extension = '+ext_nir)
     print('color deep = ',bits)
@@ -209,9 +235,9 @@ def main(**kwargs):
     print('method = ',method)
     print('output path=',dst_path)
     if th_path !='':
-        th = global_thresholding(th_path,ext_rgb,ext_nir,bits,jump,sub,hsteq,method)
+        th = global_thresholding(th_path,pref_rgb,pref_nir,ext_rgb,ext_nir,bits,jump,sub,hsteq,method)
         if dst_path !='':
-            shadow_mask(src_path,ext_rgb,ext_nir,bits,hsteq,method,th,dst_path)
+            shadow_mask(src_path,pref_rgb,pref_nir,ext_rgb,ext_nir,bits,hsteq,method,th,dst_path)
 
 if __name__ == '__main__':
     main(**dict([arg.split('=') for arg in os.sys.argv[1:]]))
