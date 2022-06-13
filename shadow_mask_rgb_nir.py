@@ -60,7 +60,7 @@ import time
 import shadow_mask as sm
 from osgeo import gdal
 
-def global_thresholding(src_path,pref_rgb,pref_nir,ext_rgb,ext_nir,bits,jump,sub,hsteq,method): 
+def global_thresholding(src_path,threshold,pref_rgb,pref_nir,ext_rgb,ext_nir,bits,jump,sub,hsteq,method): 
     print('-------------------------')
     print('global thresholding start.')
     start_thresholding = time.time()
@@ -72,7 +72,7 @@ def global_thresholding(src_path,pref_rgb,pref_nir,ext_rgb,ext_nir,bits,jump,sub
     print(len(flist_rgb),'images used:')
     flist_nir = []
     for file_rgb in flist_rgb:
-        name = file_rgb[len(src_path_rgb+pref_nir)-1:-len(ext_rgb)]
+        name = file_rgb[len(src_path_rgb+pref_nir)+1:-len(ext_rgb)]
         file_nir = os.path.join(src_path_nir,pref_nir+name+ext_nir)
         file_nir =file_nir.replace("\\","/") #unix-windows problem
         flist_nir.append(file_nir)
@@ -93,6 +93,8 @@ def global_thresholding(src_path,pref_rgb,pref_nir,ext_rgb,ext_nir,bits,jump,sub
         bgrn_list.append(bgrn)
     
     th = sm.global_thresholding_bgrn(bgrn_list,bits,method,hsteq=hsteq)
+    if threshold != 0 :
+        th[0] = threshold 
     end_thresholding = time.time()
     print('temps pour le thresholding :', end_thresholding - start_thresholding)
     print('global threshoding end.')
@@ -114,7 +116,7 @@ def shadow_mask(src_path,pref_rgb,pref_nir,ext_rgb,ext_nir,bits,hsteq,method,th,
     flist_rgb = np.array([f.replace("\\","/") for f in glob.glob(pattern)]) 
     flist_nir = []
     for file_rgb in flist_rgb:
-        name = file_rgb[len(src_path_rgb+pref_nir)-1:-len(ext_rgb)]
+        name = file_rgb[len(src_path_rgb+pref_nir)+1:-len(ext_rgb)]
         file_nir = os.path.join(src_path_nir,pref_nir+name+ext_nir)
         file_nir =file_nir.replace("\\","/") #unix-windows problem
         flist_nir.append(file_nir)
@@ -216,6 +218,10 @@ def main(**kwargs):
         dst_path = kwargs.get('output')
     else:
         dst_path = ''
+    if 'threshold_manual' in kwargs:
+        threshold_manual = float(kwargs.get('threshold_manual'))
+    else:
+        threshold_manual = 0
     if 'threshold_input' in kwargs:
         th_path = kwargs['threshold_input']
         jump = 1
@@ -224,6 +230,7 @@ def main(**kwargs):
     
     print('input image path = ',src_path)
     print('threshold image path = ',th_path)
+    print('manual threshold value = ',threshold_manual)
     print('nir file prefix key = '+pref_nir)
     print('rgb file prefix key = '+pref_rgb)
     print('rgb file key and extension = '+ext_rgb)
@@ -235,7 +242,7 @@ def main(**kwargs):
     print('method = ',method)
     print('output path=',dst_path)
     if th_path !='':
-        th = global_thresholding(th_path,pref_rgb,pref_nir,ext_rgb,ext_nir,bits,jump,sub,hsteq,method)
+        th = global_thresholding(th_path,threshold_manual,pref_rgb,pref_nir,ext_rgb,ext_nir,bits,jump,sub,hsteq,method)
         if dst_path !='':
             shadow_mask(src_path,pref_rgb,pref_nir,ext_rgb,ext_nir,bits,hsteq,method,th,dst_path)
 

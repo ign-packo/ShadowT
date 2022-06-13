@@ -41,10 +41,11 @@ python .\shadow_mask_rgb.py input=\InputImage threshold_input=\ThresholdInputIma
 
 `shadow_mask_rgb_nir.py`: le script pour traiter les images RVB + PIR
 ```  
-python .\shadow_mask_rgb_nir.py input=\InputImage threshold_input=\ThresholdInputImage pref_rgb=PrefixKeyRgb pref_rgb=PrefixKeyPir ext_rgb=-RVB.jp2 ext_nir=-PIR.jp2 bits=8 jump=2 sub=10 hsteq=False method=nagao output=\OutputResults 
+python .\shadow_mask_rgb_nir.py input=\InputImage threshold_input=\ThresholdInputImage threshold_manual=150 pref_rgb=PrefixKeyRgb pref_nir=PrefixKeyPir ext_rgb=-RVB.jp2 ext_nir=-PIR.jp2 bits=8 jump=2 sub=10 hsteq=False method=nagao output=\OutputResults 
 ```
 - `input`= nom du répertoire d'entrée. Les images RVB sont stockés dans le sous-répertoire `\RVB` et les images PIR sont stockés dans le sous-répertoire `\PIR`
 - `threshold_input`=nom du répertoire d'entrée pour le seuillage global. Les images RVB sont stockés dans le sous-répertoire `\RVB` et les images PIR sont stockés dans le sous-répertoire `\PIR` . A défaut, `threshold_input=input`
+- `threshold_manual`= saisir un seuil à la main qui sera utilisée à la place de celui calculé avec le jeu d'images donné
 - `pref_rgb`= prefixe du jeu de données RGB à utiliser.
 - `pref_nir`= prefixe du jeu de données PIR à utiliser. 
 - `ext_rgb` et `ext_nir` =  extension des images RVB et PIR, **<font color=#FF0000>Attention</font>** les noms d'image RVB et PIR doivent être identiques sauf leur extension, par exemple `nom-RVB.jp2`  dans le répertoire `\InputImage\RVB\` et `nom-PIR.jp2`  dans le répertoire `\InputImage\PIR\`. Cela permet au programme de repérer le couple d'images RVB/PIR.  défaut=.*
