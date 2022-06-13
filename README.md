@@ -3,7 +3,6 @@
 ## Description du script
 Ce script utilise différentes méthodes de seuillage d'histogramme dans le but de détecter l'ombre d'images aériennes 8 ou 16 bits. L'algorithme utilisé a besoin d'au moins les 3 bandes couleurs RVB (rouge, verte et bleue) dans le visible, une bande en proche-infrarouge (PIR) de plus serait encore mieux.  
 
-## Algorithme
 
 `shadow_mask.py` combine les différentes méthodes de détection d'ombre pour construire un processus robuste. L'idée principale est d'appliquer un seuillage global sur un groupe d'images qui présente les différentes scènes de payage d'un chantier. Le seuil déterminé peut être appliqué sur l'ensemble d'images aérienne du même chantier.
 
@@ -58,8 +57,7 @@ python .\shadow_mask_rgb_nir.py input=\InputImage threshold_input=\ThresholdInpu
 
 ## Résultats
 Dans le répertoire de sortie, vous trouverez: 
-- masked_nom.jpg:  Image de départ en 8 bits (quelque soit sa profondeur de couleur d'origine) et les pixels d'ombre sont masqués en rouge. Le nom d'image `nom` de départ est conservé.
-- mask_nom.jpg:  Masque d'ombre binaire obtenu, les pixels d'ombre ont la valeur 0 et les restes ont la valeur 255.
+- mask_nom.tif:  Masque d'ombre binaire obtenu, les pixels d'ombre ont la valeur 0 et les restes ont la valeur 255.
 
 ## Précision du masque d'ombre
 Pour comparer la précision des différents masques d'ombre, le script ``DifferenceMask.py`` compare deux masques issus d'une même image.
