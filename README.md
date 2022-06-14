@@ -24,7 +24,7 @@ Pour utiliser le script, désigner un répertoire d'entrée contenant des images
 `shadow_mask_rgb.py`: le script pour traiter les images RVB
 
 ```  
-python .\shadow_mask_rgb.py input=\InputImage threshold_input=\ThresholdInputImage pref_rgb=PrefixKey ext=.jp2 bits=8 jump=2 sub=10 hsteq=False output=\OutputResults masked_image=False th=None
+python .\shadow_mask_rgb.py input=\InputImage threshold_input=\ThresholdInputImage pref_rgb=PrefixKey ext=.jp2 bits=8 jump=2 sub=10 hsteq=False output=\OutputResults masked_image=True th=th_shadow
 ```
 - `input`= nom du répertoire d'entrée.
 - `threshold_input`= nom du répertoire d'entrée pour le seuillage global. A défaut, `threshold_input=input`
@@ -41,7 +41,7 @@ python .\shadow_mask_rgb.py input=\InputImage threshold_input=\ThresholdInputIma
 
 `shadow_mask_rgb_nir.py`: le script pour traiter les images RVB + PIR
 ```  
-python .\shadow_mask_rgb_nir.py input=\InputImage threshold_input=\ThresholdInputImage pref_rgb=PrefixKeyRgb pref_rgb=PrefixKeyPir ext_rgb=-RVB.jp2 ext_nir=-PIR.jp2 bits=8 jump=2 sub=10 hsteq=False method=nagao output=\OutputResults masked_image=False th=None 
+python .\shadow_mask_rgb_nir.py input=\InputImage threshold_input=\ThresholdInputImage pref_rgb=PrefixKeyRgb pref_rgb=PrefixKeyPir ext_rgb=-RVB.jp2 ext_nir=-PIR.jp2 bits=8 jump=2 sub=10 hsteq=False method=nagao output=\OutputResults masked_image=True th=[th_shadow,th_wat,th_veg] 
 ```
 - `input`= nom du répertoire d'entrée. Les images RVB sont stockés dans le sous-répertoire `\RVB` et les images PIR sont stockés dans le sous-répertoire `\IR`
 - `threshold_input`=nom du répertoire d'entrée pour le seuillage global. Les images RVB sont stockés dans le sous-répertoire `\RVB` et les images PIR sont stockés dans le sous-répertoire `\IR` . A défaut, `threshold_input=input`
