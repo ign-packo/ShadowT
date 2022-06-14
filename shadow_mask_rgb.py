@@ -33,7 +33,10 @@ Module name:
 
 Modification:
     2020-11-09: save the mask image in tif format        
-
+    2022-06-13: - fixe bug 
+                - add masked_image option for saving the shadow masked 8bits image,
+                  default is False
+                - add th option for user defined threshold value for rgb image
 """
 
 import os
@@ -52,6 +55,9 @@ def global_thresholding(src_path,ext,bits,jump,sub,hsteq):
     pattern = os.path.join(src_path,'*'+ext)
     flist = np.array([f.replace("\\","/") for f in glob.glob(pattern)])    
     flist = flist[0::jump]
+    if len(flist)==0:
+        print('global thresholding failed, no image found')
+        return None
     print(len(flist),'images used:')
     for file in flist:     
         print(file[len(src_path)+1:])
@@ -69,7 +75,7 @@ def global_thresholding(src_path,ext,bits,jump,sub,hsteq):
     print('----------------------------')
     return th
 
-def shadow_mask(src_path,pref_rgb,ext,bits,hsteq,th,dst_path):
+def shadow_mask(src_path,pref_rgb,ext,bits,hsteq,th,dst_path,masked_image):
     print('-----------------------------')
     print('|rgb image shadow mask start|')
     print('-----------------------------')
@@ -91,23 +97,24 @@ def shadow_mask(src_path,pref_rgb,ext,bits,hsteq,th,dst_path):
         geo_proj = georef_src.GetProjection()
         georef_dst.SetGeoTransform(geo_tsf)
         georef_dst.SetProjection(geo_proj)        
-        print(name+' done')                
-        #save bgr_8bits with mask
-        if bits==8:
-            bgr8 = bgr.copy()
-        elif bits==16:
-            bgr8 = sm.linear_stretch_16bits_to_8bits(bgr,vmin=0,vmax=0.98)
-        else:
-            print('bits must = 8 or 16!')
-            
-        #Superpose mask on the original image    
-        #val = [0,0,255]
-        #for i in range(3):
-            #v = bgr8[:,:,i]
-            #v[mask==1] = val[i]
-            #bgr8[:,:,i] = v        
-        #imfile = os.path.join(dst_path,'masked_'+name+'.jpg')
-        #cv2.imwrite(imfile,bgr8)
+        print(name+' shadow mask done')               
+        if(masked_image):
+            #save bgr_8bits with mask
+            if bits==8:
+                bgr8 = bgr.copy()
+            elif bits==16:
+                bgr8 = sm.linear_stretch_16bits_to_8bits(bgr,vmin=0,vmax=0.98)
+            else:
+                print('bits must = 8 or 16!')
+            #Superpose mask on the original image
+            val = [0,0,255]
+            for i in range(3):
+                v = bgr8[:,:,i]
+                v[mask==1] = val[i]
+                bgr8[:,:,i] = v        
+            imfile = os.path.join(dst_path,'masked_'+name+'.jpg')
+            cv2.imwrite(imfile,bgr8)
+            print(name+' shadow masked image done')
     end_mask = time.time()
     print('temps pour le mask :', end_mask - start_mask)       
     print('---------------------------')
@@ -147,7 +154,11 @@ def main(**kwargs):
     else:
         sub = 10
     if 'hsteq' in kwargs:
-        hsteq = bool(kwargs.get('hsteq'))
+        hsteq = kwargs.get('hsteq')
+        if hsteq == 'True':
+            hsteq = True
+        else:
+            hsteq = False
     else:
         hsteq = False
     if 'output' in kwargs:
@@ -159,6 +170,18 @@ def main(**kwargs):
         jump = 1
     else:
         th_path = src_path
+    if 'masked_image' in kwargs:
+        masked_image = kwargs.get('masked_image')
+        if masked_image == 'True':
+            masked_image = True
+        else:
+            masked_image = False
+    else:
+        masked_image = False
+    if 'th' in kwargs:
+        th = float(kwargs.get('th'))
+    else:
+        th = None
     
     print('input image path = ',src_path)
     print('threshold image path = ',th_path)
@@ -168,11 +191,14 @@ def main(**kwargs):
     print('jump = ',jump)
     print('sub = ',sub)
     print('hsteq = ',hsteq)
-    print('output path=',dst_path)
-    if th_path !='':
+    print('output path =',dst_path)
+    print('output masked image =',masked_image)
+    if(th):
+        print('user defined threshold =',th)
+    elif th_path !='':
         th = global_thresholding(th_path,ext,bits,jump,sub,hsteq)
-        if dst_path !='':
-            shadow_mask(src_path,pref_rgb,ext,bits,hsteq,th,dst_path)
+    if dst_path !='' and th:
+        shadow_mask(src_path,pref_rgb,ext,bits,hsteq,th,dst_path,masked_image)
         
     
     

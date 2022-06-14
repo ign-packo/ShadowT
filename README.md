@@ -3,7 +3,6 @@
 ## Description du script
 Ce script utilise différentes méthodes de seuillage d'histogramme dans le but de détecter l'ombre d'images aériennes 8 ou 16 bits. L'algorithme utilisé a besoin d'au moins les 3 bandes couleurs RVB (rouge, verte et bleue) dans le visible, une bande en proche-infrarouge (PIR) de plus serait encore mieux.  
 
-## Algorithme
 
 `shadow_mask.py` combine les différentes méthodes de détection d'ombre pour construire un processus robuste. L'idée principale est d'appliquer un seuillage global sur un groupe d'images qui présente les différentes scènes de payage d'un chantier. Le seuil déterminé peut être appliqué sur l'ensemble d'images aérienne du même chantier.
 
@@ -25,7 +24,7 @@ Pour utiliser le script, désigner un répertoire d'entrée contenant des images
 `shadow_mask_rgb.py`: le script pour traiter les images RVB
 
 ```  
-python .\shadow_mask_rgb.py input=\InputImage threshold_input=\ThresholdInputImage pref_rgb=PrefixKey ext=.jp2 bits=8 jump=2 sub=10 hsteq=False output=\OutputResults 
+python .\shadow_mask_rgb.py input=\InputImage threshold_input=\ThresholdInputImage pref_rgb=PrefixKey ext=.jp2 bits=8 jump=2 sub=10 hsteq=False output=\OutputResults masked_image=True th=th_shadow
 ```
 - `input`= nom du répertoire d'entrée.
 - `threshold_input`= nom du répertoire d'entrée pour le seuillage global. A défaut, `threshold_input=input`
@@ -36,15 +35,16 @@ python .\shadow_mask_rgb.py input=\InputImage threshold_input=\ThresholdInputIma
 - `sub`= un autre intervalle pour le seuillage global. Le seuillage global n'a pas besoin de lire tous les pixels d'une image, donner un intervalle>1 permet de gagner du temps. défaut=10 
 - `hsteq`= option pour le seuillage global. Certaines images en 16bits brute ont une plage de dynamique restreinte, `hsteq=True` applique une égalisation histogramme sur  la luminosité `I` afin d'améliorer le résultat de seuillage d'histogramme. défaut=False
 - `output`= nom du répertoire de sortie. A défaut de répertoire de sortie, le script ne fait que de seuillage global.
-
+- `masked_image`=True, enregistrer l'image d'entrée en 8 bits avec les ombres marquées en rouge. `défaut=False`.
+- `th=th_shadow`, valeur de seuil définie par utilisateur. `Ce paramètre désactive le seuillage global`
 
 
 `shadow_mask_rgb_nir.py`: le script pour traiter les images RVB + PIR
 ```  
-python .\shadow_mask_rgb_nir.py input=\InputImage threshold_input=\ThresholdInputImage pref_rgb=PrefixKeyRgb pref_rgb=PrefixKeyPir ext_rgb=-RVB.jp2 ext_nir=-PIR.jp2 bits=8 jump=2 sub=10 hsteq=False method=nagao output=\OutputResults 
+python .\shadow_mask_rgb_nir.py input=\InputImage threshold_input=\ThresholdInputImage pref_rgb=PrefixKeyRgb pref_rgb=PrefixKeyPir ext_rgb=-RVB.jp2 ext_nir=-PIR.jp2 bits=8 jump=2 sub=10 hsteq=False method=nagao output=\OutputResults masked_image=True th=[th_shadow,th_wat,th_veg] 
 ```
-- `input`= nom du répertoire d'entrée. Les images RVB sont stockés dans le sous-répertoire `\RVB` et les images PIR sont stockés dans le sous-répertoire `\PIR`
-- `threshold_input`=nom du répertoire d'entrée pour le seuillage global. Les images RVB sont stockés dans le sous-répertoire `\RVB` et les images PIR sont stockés dans le sous-répertoire `\PIR` . A défaut, `threshold_input=input`
+- `input`= nom du répertoire d'entrée. Les images RVB sont stockés dans le sous-répertoire `\RVB` et les images PIR sont stockés dans le sous-répertoire `\IR`
+- `threshold_input`=nom du répertoire d'entrée pour le seuillage global. Les images RVB sont stockés dans le sous-répertoire `\RVB` et les images PIR sont stockés dans le sous-répertoire `\IR` . A défaut, `threshold_input=input`
 - `pref_rgb`= prefixe du jeu de données RGB à utiliser.
 - `pref_nir`= prefixe du jeu de données PIR à utiliser. 
 - `ext_rgb` et `ext_nir` =  extension des images RVB et PIR, **<font color=#FF0000>Attention</font>** les noms d'image RVB et PIR doivent être identiques sauf leur extension, par exemple `nom-RVB.jp2`  dans le répertoire `\InputImage\RVB\` et `nom-PIR.jp2`  dans le répertoire `\InputImage\PIR\`. Cela permet au programme de repérer le couple d'images RVB/PIR.  défaut=.*
@@ -54,12 +54,13 @@ python .\shadow_mask_rgb_nir.py input=\InputImage threshold_input=\ThresholdInpu
 - `hsteq`= option pour le seuillage global. Certaines images en 16bits brute ont une plage de dynamique restreinte, `hsteq=True` applique une égalisation histogramme sur  la luminosité `I` afin d'améliorer le résultat de seuillage d'histogramme. défaut=False
 - `method`= option pour sélectionner la méthode de seuillage global. Il dispose les options `nagao` et `tsai`, défaut=nagao
 - `output`= nom du répertoire de sortie. A défaut de répertoire de sortie, le script ne fait que de seuillage global.
-
+- `masked_image`=True, enregistrer l'image d'entrée en 8 bits avec les ombres marquées en rouge. `défaut=False`.
+- `th=[th_shadow,th_wat,th_veg]`, valeur de seuil définie par utilisateur. `Ce paramètre désactive le seuillage global`
 
 ## Résultats
 Dans le répertoire de sortie, vous trouverez: 
-- masked_nom.jpg:  Image de départ en 8 bits (quelque soit sa profondeur de couleur d'origine) et les pixels d'ombre sont masqués en rouge. Le nom d'image `nom` de départ est conservé.
-- mask_nom.jpg:  Masque d'ombre binaire obtenu, les pixels d'ombre ont la valeur 0 et les restes ont la valeur 255.
+- mask_nom.tif:  Masque d'ombre binaire obtenu, les pixels d'ombre ont la valeur 0 et les restes ont la valeur 255.
+- masked_nom.jpg: L'image d'entrée en 8 bits avec les ombres marquées en rouge.
 
 ## Précision du masque d'ombre
 Pour comparer la précision des différents masques d'ombre, le script ``DifferenceMask.py`` compare deux masques issus d'une même image.
@@ -77,6 +78,8 @@ Cependant, même à l'oeil nu il est difficile dans certains cas de déterminer 
 ## Discussion
 
 Le seuillage global avec une liste d'images construite par jump n'est peut être pas la méthode la plus efficace, surtout s'il existe de scènes seulement présentées dans 1 ou 2 images. Dans le cas de seuillage global RVB+PIR, il faut penser à construire une liste d'images sélectionnées par l'utilisateur pour le seuillage global.
+
+La détermination des seuils pour l'eau et pour la végétation peut utiliser différents jeux de données.
 
 # Créateur 
 Manchun Lei - https://www.umr-lastig.fr/manchun-lei/
