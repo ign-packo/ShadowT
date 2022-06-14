@@ -340,7 +340,7 @@ def hist_valleys(hist):
         if len(valleys)<1:
             print("hist valleys failed")
             valleys = np.array([int(len(hist1)/2)])
-    return valleys    
+    return valleys
     
 def global_thresholding_nagao(bgrn_list,bits):
     '''
@@ -392,6 +392,7 @@ def water_detection(bgrn_list):
     valleys = hist_valleys(hist)
     ith_last = valleys[-1]
     th_ndwi = x[ith_last]
+        
     return th_ndwi
 
 
